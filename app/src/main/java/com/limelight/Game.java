@@ -2791,6 +2791,17 @@ public class Game extends AppCompatActivity implements SurfaceHolder.Callback,
                                     eventSource == 12290) // 12290 = Samsung DeX mode desktop mouse
             ) {
                 int buttonState = event.getButtonState();
+
+                // Pogo keyboard tap fix: ZUI sends BUTTON_SECONDARY for single-finger taps.
+                // Pre-remap before computing changedButtons so lastButtonState stays consistent.
+                if (prefConfig.touchpadTapFix && cursorVisible
+                        && (buttonState & MotionEvent.BUTTON_SECONDARY) != 0) {
+                    InputDevice tapFixDev = event.getDevice();
+                    if (tapFixDev != null && tapFixDev.supportsSource(InputDevice.SOURCE_TOUCHPAD)) {
+                        buttonState = (buttonState & ~MotionEvent.BUTTON_SECONDARY) | MotionEvent.BUTTON_PRIMARY;
+                    }
+                }
+
                 int changedButtons = buttonState ^ lastButtonState;
 
                 // Two finger click
@@ -3056,6 +3067,14 @@ public class Game extends AppCompatActivity implements SurfaceHolder.Callback,
                             conn.sendMouseButtonUp(MouseButtonPacket.BUTTON_RIGHT);
                         }
                     }
+                }
+
+                // After button release on pogo touchpad, send a zero-delta relative move so
+                // Windows treats the next event as mouse input and keeps the cursor visible.
+                if (prefConfig.touchpadTapFix && cursorVisible
+                        && (lastButtonState & (MotionEvent.BUTTON_PRIMARY | MotionEvent.BUTTON_SECONDARY | MotionEvent.BUTTON_TERTIARY)) != 0
+                        && (buttonState & (MotionEvent.BUTTON_PRIMARY | MotionEvent.BUTTON_SECONDARY | MotionEvent.BUTTON_TERTIARY)) == 0) {
+                    conn.sendMouseMove((short) 0, (short) 0);
                 }
 
                 lastButtonState = buttonState;

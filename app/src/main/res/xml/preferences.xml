@@ -391,6 +391,14 @@
 
         <CheckBoxPreference
             android:defaultValue="false"
+            android:dependency="checkbox_mouse_local_cursor"
+            android:key="checkbox_touchpad_tap_fix"
+            android:summary="@string/summary_checkbox_touchpad_tap_fix"
+            android:title="@string/title_checkbox_touchpad_tap_fix"
+            app:iconSpaceReserved="false" />
+
+        <CheckBoxPreference
+            android:defaultValue="false"
             android:key="checkbox_multi_touch_gestures"
             android:summary="@string/summary_checkbox_multi_touch_gestures"
             android:title="@string/title_checkbox_multi_touch_gestures"

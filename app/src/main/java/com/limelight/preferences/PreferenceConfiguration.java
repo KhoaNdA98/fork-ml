@@ -324,6 +324,7 @@ public class PreferenceConfiguration {
 
     //物理光标捕获
     public boolean enableMouseLocalCursor;
+    public boolean touchpadTapFix;
 
     public boolean enableMultiTouchGestures;
 
@@ -978,6 +979,7 @@ private static int getFramePacingValue(Context context) {
         config.enableTouchSensitivity=prefs.getBoolean("checkbox_enable_touch_sensitivity",false);
 
         config.enableMouseLocalCursor=prefs.getBoolean("checkbox_mouse_local_cursor",false);
+        config.touchpadTapFix = prefs.getBoolean("checkbox_touchpad_tap_fix", false);
 
         config.enableMultiTouchGestures = prefs.getBoolean("checkbox_multi_touch_gestures", false);
 
