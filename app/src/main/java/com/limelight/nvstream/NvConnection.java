@@ -510,9 +510,6 @@ public class NvConnection {
 
     public void sendMouseButtonDown(final byte mouseButton)
     {
-        if (mouseButton == MouseButtonPacket.BUTTON_RIGHT) {
-            android.util.Log.d("MoonlightInput", "RIGHT_DOWN", new Exception("stack"));
-        }
         if (!isMonkey) {
             MoonBridge.sendMouseButton(MouseButtonPacket.PRESS_EVENT, mouseButton);
         }
