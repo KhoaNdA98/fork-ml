@@ -2029,6 +2029,12 @@ public class Game extends AppCompatActivity implements SurfaceHolder.Callback,
 
     @Override
     public boolean handleKeyDown(KeyEvent event) {
+        if (prefConfig.touchpadTapFix && cursorVisible) {
+            Log.d("MoonlightInput", "KEY_DOWN code=" + event.getKeyCode()
+                    + " src=" + event.getSource()
+                    + " dev=" + event.getDeviceId());
+        }
+
         // Pass-through virtual navigation keys
         if ((event.getFlags() & KeyEvent.FLAG_VIRTUAL_HARD_KEY) != 0) {
             return false;
@@ -2120,6 +2126,12 @@ public class Game extends AppCompatActivity implements SurfaceHolder.Callback,
 
     @Override
     public boolean handleKeyUp(KeyEvent event) {
+        if (prefConfig.touchpadTapFix && cursorVisible) {
+            Log.d("MoonlightInput", "KEY_UP code=" + event.getKeyCode()
+                    + " src=" + event.getSource()
+                    + " dev=" + event.getDeviceId());
+        }
+
         // Pass-through virtual navigation keys
         if ((event.getFlags() & KeyEvent.FLAG_VIRTUAL_HARD_KEY) != 0) {
             return false;
