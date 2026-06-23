@@ -2804,8 +2804,11 @@ public class Game extends AppCompatActivity implements SurfaceHolder.Callback,
 
                 int changedButtons = buttonState ^ lastButtonState;
 
-                // Two finger click
-                if ((eventSource & InputDevice.SOURCE_CLASS_POSITION) != 0 &&
+                // Two finger click (disabled when touchpadTapFix is active: ZUI reports pointerCount=2
+                // and getActionButton()=PRIMARY for single-finger taps, which would incorrectly trigger
+                // this code and re-add BUTTON_SECONDARY after our pre-remap removed it).
+                if (!(prefConfig.touchpadTapFix && cursorVisible) &&
+                        (eventSource & InputDevice.SOURCE_CLASS_POSITION) != 0 &&
                         event.getPointerCount() == 2 &&
                         (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && event.getActionButton() == MotionEvent.BUTTON_PRIMARY)) {
                     if (event.getActionMasked() == MotionEvent.ACTION_BUTTON_PRESS) {
