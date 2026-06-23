@@ -54,6 +54,7 @@ import com.limelight.utils.SpinnerDialog;
 import com.limelight.utils.UiHelper;
 
 import android.annotation.SuppressLint;
+import android.util.Log;
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.app.PictureInPictureParams;
@@ -2791,6 +2792,15 @@ public class Game extends AppCompatActivity implements SurfaceHolder.Callback,
                                     eventSource == 12290) // 12290 = Samsung DeX mode desktop mouse
             ) {
                 int buttonState = event.getButtonState();
+
+                if (prefConfig.touchpadTapFix && cursorVisible) {
+                    Log.d("MoonlightInput", "BTN raw=" + buttonState
+                            + " action=" + event.getActionMasked()
+                            + " actionBtn=" + event.getActionButton()
+                            + " src=" + eventSource
+                            + " ptrs=" + event.getPointerCount()
+                            + " lastBtn=" + lastButtonState);
+                }
 
                 // Pogo keyboard tap fix: ZUI sends BUTTON_SECONDARY for single-finger taps.
                 // Pre-remap before computing changedButtons so lastButtonState stays consistent.
