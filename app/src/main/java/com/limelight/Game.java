@@ -2760,6 +2760,19 @@ public class Game extends AppCompatActivity implements SurfaceHolder.Callback,
             return false;
         }
 
+        if (prefConfig.touchpadTapFix && cursorVisible) {
+            int a = event.getActionMasked();
+            // Log button presses, releases, and touch down/up
+            if (a == 0 || a == 1 || a == 11 || a == 12) {
+                Log.d("MoonlightInput", "EARLY action=" + a
+                        + " raw=" + event.getButtonState()
+                        + " actionBtn=" + event.getActionButton()
+                        + " src=" + event.getSource()
+                        + " ptrs=" + event.getPointerCount()
+                        + " tool=" + event.getToolType(0));
+            }
+        }
+
         int deviceId = event.getDeviceId();
         if (prefConfig.ignoreSynthEvents && deviceId <= 0) {
             return false;
