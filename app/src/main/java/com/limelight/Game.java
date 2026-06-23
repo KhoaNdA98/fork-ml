@@ -2968,14 +2968,16 @@ public class Game extends AppCompatActivity implements SurfaceHolder.Callback,
                             case MotionEvent.ACTION_HOVER_EXIT:
                             case MotionEvent.ACTION_DOWN:
                                 pendingDrag = true;
-                                synthClickPending = true;
+                                if (!(prefConfig.touchpadTapFix && cursorVisible)) {
+                                    synthClickPending = true;
+                                }
                                 lastTouchDownX = event.getX();
                                 lastTouchDownY = event.getY();
                                 synthTouchDownTime = event.getEventTime();
                                 return true;
                             case MotionEvent.ACTION_HOVER_ENTER:
                             case MotionEvent.ACTION_UP:
-                                if (synthClickPending) {
+                                if (synthClickPending && !(prefConfig.touchpadTapFix && cursorVisible)) {
                                     long timeDiff = event.getEventTime() - synthTouchDownTime;
 
                                     if (eventSource == 12290) {
