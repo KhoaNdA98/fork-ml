@@ -206,6 +206,7 @@ public class Game extends AppCompatActivity implements SurfaceHolder.Callback,
     private boolean synthClickPending = false;
     private boolean pointerSwiping = false;
     private boolean isTwoFingerScrolling = false;
+    private boolean scrollStarted = false;
     private float lastScrollY = 0;
     private boolean waitingForAllModifiersUp = false;
     private int specialKeyCode = KeyEvent.KEYCODE_UNKNOWN;
@@ -2934,15 +2935,22 @@ public class Game extends AppCompatActivity implements SurfaceHolder.Callback,
                                         && eventAction == MotionEvent.ACTION_MOVE) {
                                     // Two-finger scroll from pogo keyboard: ZUI sends SOURCE_MOUSE
                                     // ACTION_MOVE (not CLASSIFICATION_TWO_FINGER_SWIPE). Send relative
-                                    // scroll based on delta from last position.
-                                    for (int hi = 0; hi < event.getHistorySize(); hi++) {
-                                        float dy = event.getHistoricalY(0, hi) - lastScrollY;
+                                    // scroll based on delta from last position. Skip the first batch to
+                                    // absorb finger-settle noise that would otherwise cause an initial
+                                    // wrong-direction scroll.
+                                    if (!scrollStarted) {
+                                        scrollStarted = true;
+                                        lastScrollY = event.getY(0);
+                                    } else {
+                                        for (int hi = 0; hi < event.getHistorySize(); hi++) {
+                                            float dy = event.getHistoricalY(0, hi) - lastScrollY;
+                                            if (dy != 0) conn.sendMouseHighResScroll((short)(dy * 3));
+                                            lastScrollY = event.getHistoricalY(0, hi);
+                                        }
+                                        float dy = event.getY(0) - lastScrollY;
                                         if (dy != 0) conn.sendMouseHighResScroll((short)(dy * 3));
-                                        lastScrollY = event.getHistoricalY(0, hi);
+                                        lastScrollY = event.getY(0);
                                     }
-                                    float dy = event.getY(0) - lastScrollY;
-                                    if (dy != 0) conn.sendMouseHighResScroll((short)(dy * 3));
-                                    lastScrollY = event.getY(0);
                                 } else {
                                     updateMousePosition(view, event);
                                 }
@@ -2950,6 +2958,7 @@ public class Game extends AppCompatActivity implements SurfaceHolder.Callback,
                             case MotionEvent.ACTION_HOVER_EXIT:
                                 if (prefConfig.touchpadTapFix && cursorVisible) {
                                     isTwoFingerScrolling = false;
+                                    scrollStarted = false;
                                 }
                                 pendingDrag = true;
                                 if (!(prefConfig.touchpadTapFix && cursorVisible)) {
@@ -2962,7 +2971,7 @@ public class Game extends AppCompatActivity implements SurfaceHolder.Callback,
                             case MotionEvent.ACTION_DOWN:
                                 if (prefConfig.touchpadTapFix && cursorVisible) {
                                     isTwoFingerScrolling = true;
-                                    lastScrollY = event.getY(0);
+                                    scrollStarted = false;
                                 }
                                 pendingDrag = true;
                                 if (!(prefConfig.touchpadTapFix && cursorVisible)) {
