@@ -2999,8 +2999,33 @@ public class Game extends AppCompatActivity implements SurfaceHolder.Callback,
                                 }
                                 return true;
                             case MotionEvent.ACTION_BUTTON_PRESS:
+                                synthClickPending = false;
+                                if (prefConfig.touchpadTapFix && cursorVisible) {
+                                    int actionButton = event.getActionButton();
+                                    if ((actionButton & MotionEvent.BUTTON_SECONDARY) != 0) {
+                                        conn.sendMouseButtonDown(MouseButtonPacket.BUTTON_RIGHT);
+                                    } else if ((actionButton & MotionEvent.BUTTON_PRIMARY) != 0) {
+                                        conn.sendMouseButtonDown(MouseButtonPacket.BUTTON_LEFT);
+                                    }
+                                    lastButtonState = buttonState;
+                                    return true;
+                                }
+                                break;
                             case MotionEvent.ACTION_BUTTON_RELEASE:
                                 synthClickPending = false;
+                                if (prefConfig.touchpadTapFix && cursorVisible) {
+                                    int actionButton = event.getActionButton();
+                                    if ((actionButton & MotionEvent.BUTTON_SECONDARY) != 0) {
+                                        conn.sendMouseButtonUp(MouseButtonPacket.BUTTON_RIGHT);
+                                    } else if ((actionButton & MotionEvent.BUTTON_PRIMARY) != 0) {
+                                        conn.sendMouseButtonUp(MouseButtonPacket.BUTTON_LEFT);
+                                    }
+                                    conn.sendMouseMove((short) 0, (short) 0);
+                                    // ZUI reports wrong buttonState=2 on BUTTON_RELEASE; force to 0
+                                    lastButtonState = 0;
+                                    return true;
+                                }
+                                break;
                             default:
                                 break;
                         }
