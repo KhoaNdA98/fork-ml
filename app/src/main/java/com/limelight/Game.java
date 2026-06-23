@@ -2794,12 +2794,12 @@ public class Game extends AppCompatActivity implements SurfaceHolder.Callback,
 
                 // Pogo keyboard tap fix: ZUI sends BUTTON_SECONDARY for single-finger taps.
                 // Pre-remap before computing changedButtons so lastButtonState stays consistent.
+                // No device check: ZUI may emit both a SOURCE_TOUCHPAD and a synthetic SOURCE_MOUSE
+                // event for the same tap (from a virtual pointer device that lacks SOURCE_TOUCHPAD),
+                // so we remap any SECONDARY event when this fix is active.
                 if (prefConfig.touchpadTapFix && cursorVisible
                         && (buttonState & MotionEvent.BUTTON_SECONDARY) != 0) {
-                    InputDevice tapFixDev = event.getDevice();
-                    if (tapFixDev != null && tapFixDev.supportsSource(InputDevice.SOURCE_TOUCHPAD)) {
-                        buttonState = (buttonState & ~MotionEvent.BUTTON_SECONDARY) | MotionEvent.BUTTON_PRIMARY;
-                    }
+                    buttonState = (buttonState & ~MotionEvent.BUTTON_SECONDARY) | MotionEvent.BUTTON_PRIMARY;
                 }
 
                 int changedButtons = buttonState ^ lastButtonState;
