@@ -205,6 +205,8 @@ public class Game extends AppCompatActivity implements SurfaceHolder.Callback,
     private boolean isPanZoomMode = false;
     private boolean synthClickPending = false;
     private boolean pointerSwiping = false;
+    private boolean isTwoFingerScrolling = false;
+    private float lastScrollY = 0;
     private boolean waitingForAllModifiersUp = false;
     private int specialKeyCode = KeyEvent.KEYCODE_UNKNOWN;
     private StreamContainer streamContainer;
@@ -2880,12 +2882,6 @@ public class Game extends AppCompatActivity implements SurfaceHolder.Callback,
                         // Handle trackpad two finger swipes when pointer is not captured by synthesizing a trackpad movement
                         // Android emulates trackpad  two finger swipes as one finger swipe on the screen
                         int eventAction = event.getActionMasked();
-                        if (prefConfig.touchpadTapFix && cursorVisible) {
-                            Log.d("MoonlightInput", "SWIPE action=" + eventAction
-                                    + " cls=" + event.getClassification()
-                                    + " swiping=" + pointerSwiping
-                                    + " y=" + (int)event.getY());
-                        }
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && event.getClassification() == MotionEvent.CLASSIFICATION_TWO_FINGER_SWIPE) {
                             if (!pointerSwiping) {
                                 pointerSwiping = true;
@@ -2933,10 +2929,41 @@ public class Game extends AppCompatActivity implements SurfaceHolder.Callback,
                         switch (eventAction) {
                             case MotionEvent.ACTION_HOVER_MOVE:
                             case MotionEvent.ACTION_MOVE:
-                                updateMousePosition(view, event);
+                                if (prefConfig.touchpadTapFix && cursorVisible
+                                        && isTwoFingerScrolling
+                                        && eventAction == MotionEvent.ACTION_MOVE) {
+                                    // Two-finger scroll from pogo keyboard: ZUI sends SOURCE_MOUSE
+                                    // ACTION_MOVE (not CLASSIFICATION_TWO_FINGER_SWIPE). Send relative
+                                    // scroll based on delta from last position.
+                                    for (int hi = 0; hi < event.getHistorySize(); hi++) {
+                                        float dy = event.getHistoricalY(0, hi) - lastScrollY;
+                                        if (dy != 0) conn.sendMouseHighResScroll((short)(dy * 3));
+                                        lastScrollY = event.getHistoricalY(0, hi);
+                                    }
+                                    float dy = event.getY(0) - lastScrollY;
+                                    if (dy != 0) conn.sendMouseHighResScroll((short)(dy * 3));
+                                    lastScrollY = event.getY(0);
+                                } else {
+                                    updateMousePosition(view, event);
+                                }
                                 return true;
                             case MotionEvent.ACTION_HOVER_EXIT:
+                                if (prefConfig.touchpadTapFix && cursorVisible) {
+                                    isTwoFingerScrolling = false;
+                                }
+                                pendingDrag = true;
+                                if (!(prefConfig.touchpadTapFix && cursorVisible)) {
+                                    synthClickPending = true;
+                                }
+                                lastTouchDownX = event.getX();
+                                lastTouchDownY = event.getY();
+                                synthTouchDownTime = event.getEventTime();
+                                return true;
                             case MotionEvent.ACTION_DOWN:
+                                if (prefConfig.touchpadTapFix && cursorVisible) {
+                                    isTwoFingerScrolling = true;
+                                    lastScrollY = event.getY(0);
+                                }
                                 pendingDrag = true;
                                 if (!(prefConfig.touchpadTapFix && cursorVisible)) {
                                     synthClickPending = true;
@@ -3134,6 +3161,13 @@ public class Game extends AppCompatActivity implements SurfaceHolder.Callback,
 
                     // If touch is disabled or not initialized, we'll try panning the streamView
                     if (touchContextMap[0] == null) {
+                        return true;
+                    }
+
+                    // Ignore SOURCE_TOUCHSCREEN events that arrive at the tail of a two-finger
+                    // scroll gesture (ZUI sends ACTION_UP via SOURCE_TOUCHSCREEN after the scroll).
+                    // Without this guard, AbsoluteTouchContext would fire a spurious left-click.
+                    if (prefConfig.touchpadTapFix && cursorVisible && isTwoFingerScrolling) {
                         return true;
                     }
 
