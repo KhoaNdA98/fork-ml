@@ -2774,8 +2774,8 @@ public class Game extends AppCompatActivity implements SurfaceHolder.Callback,
 
         if (prefConfig.touchpadTapFix && cursorVisible) {
             int a = event.getActionMasked();
-            // Log button presses, releases, and touch down/up
-            if (a == 0 || a == 1 || a == 11 || a == 12) {
+            // Log button presses, releases, touch down/up, and multi-finger events
+            if (a == 0 || a == 1 || a == 5 || a == 6 || a == 11 || a == 12 || event.getPointerCount() > 1) {
                 Log.d("MoonlightInput", "EARLY action=" + a
                         + " raw=" + event.getButtonState()
                         + " actionBtn=" + event.getActionButton()
@@ -2825,16 +2825,6 @@ public class Game extends AppCompatActivity implements SurfaceHolder.Callback,
                             + " src=" + eventSource
                             + " ptrs=" + event.getPointerCount()
                             + " lastBtn=" + lastButtonState);
-                }
-
-                // Pogo keyboard tap fix: ZUI sends BUTTON_SECONDARY for single-finger taps.
-                // Pre-remap before computing changedButtons so lastButtonState stays consistent.
-                // No device check: ZUI may emit both a SOURCE_TOUCHPAD and a synthetic SOURCE_MOUSE
-                // event for the same tap (from a virtual pointer device that lacks SOURCE_TOUCHPAD),
-                // so we remap any SECONDARY event when this fix is active.
-                if (prefConfig.touchpadTapFix && cursorVisible
-                        && (buttonState & MotionEvent.BUTTON_SECONDARY) != 0) {
-                    buttonState = (buttonState & ~MotionEvent.BUTTON_SECONDARY) | MotionEvent.BUTTON_PRIMARY;
                 }
 
                 int changedButtons = buttonState ^ lastButtonState;
@@ -2925,6 +2915,9 @@ public class Game extends AppCompatActivity implements SurfaceHolder.Callback,
                             if (!pointerSwiping) {
                                 pointerSwiping = true;
                                 handleTouchInput(event, trackpadContextMap, false, prefConfig.trackpadSwapAxis, MotionEvent.ACTION_POINTER_DOWN, 1, 2);
+                                // Skip ACTION_MOVE on the first event: historical positions predate the
+                                // gesture recognition and would produce an inverted initial delta.
+                                return true;
                             }
                             return handleTouchInput(event, trackpadContextMap, false, prefConfig.trackpadSwapAxis, MotionEvent.ACTION_MOVE, 1, 2);
                         } else if (pointerSwiping && eventAction == MotionEvent.ACTION_UP) {
