@@ -2911,6 +2911,12 @@ public class Game extends AppCompatActivity implements SurfaceHolder.Callback,
                         // Handle trackpad two finger swipes when pointer is not captured by synthesizing a trackpad movement
                         // Android emulates trackpad  two finger swipes as one finger swipe on the screen
                         int eventAction = event.getActionMasked();
+                        if (prefConfig.touchpadTapFix && cursorVisible) {
+                            Log.d("MoonlightInput", "SWIPE action=" + eventAction
+                                    + " cls=" + event.getClassification()
+                                    + " swiping=" + pointerSwiping
+                                    + " y=" + (int)event.getY());
+                        }
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && event.getClassification() == MotionEvent.CLASSIFICATION_TWO_FINGER_SWIPE) {
                             if (!pointerSwiping) {
                                 pointerSwiping = true;
