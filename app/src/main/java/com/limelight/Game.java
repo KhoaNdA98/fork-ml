@@ -2920,7 +2920,9 @@ public class Game extends AppCompatActivity implements SurfaceHolder.Callback,
                                 return true;
                             }
                             return handleTouchInput(event, trackpadContextMap, false, prefConfig.trackpadSwapAxis, MotionEvent.ACTION_MOVE, 1, 2);
-                        } else if (pointerSwiping && eventAction == MotionEvent.ACTION_UP) {
+                        } else if (pointerSwiping && (eventAction == MotionEvent.ACTION_UP || eventAction == MotionEvent.ACTION_HOVER_EXIT)) {
+                            // Reset on ACTION_UP or HOVER_EXIT: in Local Mouse Cursor mode the swipe
+                            // ends with HOVER_EXIT (not ACTION_UP), so we must handle both.
                             pointerSwiping = false;
                             synthClickPending = false;
                             handleTouchInput(event, trackpadContextMap, false, prefConfig.trackpadSwapAxis, MotionEvent.ACTION_POINTER_UP, 1, 2);
